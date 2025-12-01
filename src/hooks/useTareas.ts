@@ -1,21 +1,24 @@
 import { useState, useEffect, useMemo } from "react";
 
+type priority = "high" | "medium" | "low";
+
 type Task = {
   id: number;
   title: string;
   description: string;
   completed: boolean;
   createdAt: Date;
+  priority: priority;
 };
 
 export type FilterType = "todas" | "completadas" | "pendientes";
 
-export function useTareas() {
+export function useTask() {
   // UseState con array de tareas
-  const [tareas, setTareas] = useState<Task[]>(() => {
-    const tareasGuardadas = localStorage.getItem("tareas");
-    if (tareasGuardadas) {
-      const tareasParsed = JSON.parse(tareasGuardadas);
+  const [task, setTask] = useState<Task[]>(() => {
+    const savedTasks = localStorage.getItem("tareas");
+    if (savedTasks) {
+      const tareasParsed = JSON.parse(savedTasks);
       // Convetir las fechas de string a Date
       return tareasParsed.map((tarea: Task) => ({
         ...tarea,
@@ -25,48 +28,66 @@ export function useTareas() {
     return [];
   });
 
-  const [filtro, setFiltro] = useState<FilterType>("todas");
+  const [filter, setFilter] = useState<FilterType>("todas");
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
-    localStorage.setItem("tareas", JSON.stringify(tareas));
-  }, [tareas]); // Solo se ejecuta cuando tareas cambia
+    localStorage.setItem("tareas", JSON.stringify(task));
+  }, [task]); // Solo se ejecuta cuando tareas cambia
 
   // Para filtrar las tareas según el filtro seleccionado
-  const tareasFiltradas = useMemo(() => {
-    switch (filtro) {
+  const filterTask = useMemo(() => {
+    let result = task;
+
+    switch (filter) {
       case "completadas":
-        return tareas.filter((tarea) => tarea.completed);
+        result = task.filter((tarea) => tarea.completed);
+        break;
       case "pendientes":
-        return tareas.filter((tarea) => !tarea.completed);
-      case "todas":
-        return tareas;
+        result = task.filter((tarea) => !tarea.completed);
+        break;
     }
-  }, [tareas, filtro]);
+
+    if (searchQuery.trim() !== "") {
+      result = result.filter(
+        (task) =>
+          task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          task.description.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+
+    return result;
+  }, [task, filter, searchQuery]);
 
   // Contadores para el TaskFilter
-  const contadores = useMemo(
+  const counter = useMemo(
     () => ({
-      todas: tareas.length,
-      pendientes: tareas.filter((tarea) => !tarea.completed).length,
-      completadas: tareas.filter((tarea) => tarea.completed).length,
+      todas: task.length,
+      pendientes: task.filter((tarea) => !tarea.completed).length,
+      completadas: task.filter((tarea) => tarea.completed).length,
     }),
-    [tareas]
+    [task]
   );
 
-  const handleAgregarTarea = (titulo: string, descripcion: string) => {
+  const handleAgregarTarea = (
+    titulo: string,
+    descripcion: string,
+    priority: priority
+  ) => {
     const nuevaTarea: Task = {
       id: Date.now(),
       title: titulo,
       description: descripcion,
       completed: false,
       createdAt: new Date(),
+      priority: priority,
     };
 
-    setTareas([...tareas, nuevaTarea]);
+    setTask([...task, nuevaTarea]);
   };
 
   const handleEliminarTarea = (id: number) => {
-    setTareas(tareas.filter((tarea) => tarea.id !== id));
+    setTask(task.filter((tarea) => tarea.id !== id));
   };
 
   const handleEditarTarea = (
@@ -74,8 +95,8 @@ export function useTareas() {
     nuevoTitutlo: string,
     nuevaDescripcion: string
   ) => {
-    setTareas(
-      tareas.map((tarea) =>
+    setTask(
+      task.map((tarea) =>
         tarea.id === id
           ? { ...tarea, title: nuevoTitutlo, description: nuevaDescripcion }
           : tarea
@@ -84,18 +105,20 @@ export function useTareas() {
   };
 
   const handleToggleCompleted = (id: number) => {
-    setTareas(
-      tareas.map((tarea) =>
+    setTask(
+      task.map((tarea) =>
         tarea.id === id ? { ...tarea, completed: !tarea.completed } : tarea
       )
     );
   };
 
   return {
-    tareas: tareasFiltradas,
-    filtro,
-    contadores,
-    setFiltro,
+    task: filterTask,
+    filter,
+    counter,
+    searchQuery,
+    setSearchQuery,
+    setFilter,
     handleAgregarTarea,
     handleEliminarTarea,
     handleEditarTarea,

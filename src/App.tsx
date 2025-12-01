@@ -1,20 +1,23 @@
 import { TaskFilter } from "./components/TaskFilter";
 import { TaskForm } from "./components/TaskForm";
 import { TaskItem } from "./components/TaskItem";
+import { TaskSearch } from "./components/TaskSearch";
 import { Card, CardContent } from "./components/ui/card";
-import { useTareas } from "./hooks/useTareas";
+import { useTask } from "./hooks/useTareas";
 
 export const App = () => {
   const {
-    tareas,
+    task: tareas,
+    filter: filtro,
+    counter: counter,
+    setFilter: setFiltro,
+    searchQuery,
+    setSearchQuery,
     handleAgregarTarea,
     handleEliminarTarea,
     handleEditarTarea,
     handleToggleCompleted,
-    filtro,
-    contadores,
-    setFiltro,
-  } = useTareas();
+  } = useTask();
   return (
     <div className="min-h-screen bg-background p-8">
       <div className="max-w-4xl mx-auto">
@@ -34,10 +37,12 @@ export const App = () => {
         {/* Agregar Tarea formulario */}
         <TaskForm onAgregarTarea={handleAgregarTarea} />
         {/* Filtro de tareas */}
+        {/* Search Task */}
+        <TaskSearch searchQuery={searchQuery} onSearchChange={setSearchQuery} />
         <TaskFilter
           filtroActual={filtro}
           onCambiarFiltro={setFiltro}
-          contadores={contadores}
+          contadores={counter}
         />
         {/* Recorremos el aray y mostramos cada tarea. */}
         <div className="space-y-4 mt-8">
@@ -56,6 +61,7 @@ export const App = () => {
                 title={tarea.title}
                 description={tarea.description}
                 createdAt={tarea.createdAt}
+                priority={tarea.priority}
                 completed={tarea.completed}
                 onEliminar={handleEliminarTarea}
                 onEditar={handleEditarTarea}

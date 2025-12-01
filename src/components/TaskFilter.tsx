@@ -20,7 +20,7 @@ export const TaskFilter = ({
 }: taskFilterProps) => {
   return (
     <Card className="mb-6">
-      <CardContent className="pt-6">
+      <CardContent className="pt-2">
         <div className="flex gap-2 justify-center flex-wrap">
           <Button
             variant={filtroActual === "todas" ? "default" : "outline"}

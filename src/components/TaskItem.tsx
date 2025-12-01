@@ -14,6 +14,7 @@ type TaskItemProps = {
   description?: string;
   completed: boolean;
   createdAt: Date;
+  priority: "high" | "medium" | "low";
   onEliminar: (id: number) => void;
   onEditar: (id: number, nuevoTitulo: string, nuevaDescripcion: string) => void;
   onToggleCompleted: (id: number) => void;
@@ -26,6 +27,7 @@ const TaskItemComponent = ({
   description,
   completed,
   createdAt,
+  priority,
   onEliminar,
   onEditar,
   onToggleCompleted,
@@ -33,6 +35,13 @@ const TaskItemComponent = ({
   const [editando, setEditando] = useState(false);
   const [nuevoTitulo, setNuevoTitulo] = useState(title);
   const [nuevaDescripcion, setNuevaDescripcion] = useState(description);
+
+  // Mapeo de colores para prioridades
+  const priorityColors = {
+    high: "bg-red-500/10 text-red-500",
+    medium: "bg-yellow-500/10 text-yellow-500",
+    low: "bg-green-500/10 text-green-500",
+  };
 
   const guardarCambios = () => {
     onEditar(id, nuevoTitulo, nuevaDescripcion || "");
@@ -101,7 +110,7 @@ const TaskItemComponent = ({
             whileHover={{ scale: 1.02 }}
           >
             <Card
-              className={`transition-all hover:shadow-lg ${
+              className={`transition-all hover:shadow-lg flex${
                 completed ? "opacity-60" : ""
               }`}
             >
@@ -132,7 +141,7 @@ const TaskItemComponent = ({
               </CardHeader>
               <CardContent>
                 <p
-                  className={`mb-2 ${
+                  className={` ${
                     completed
                       ? "line-through text-muted-foreground/60"
                       : "text-muted-foreground"
@@ -142,8 +151,14 @@ const TaskItemComponent = ({
                 </p>
                 <p className="text-xs text-muted-foreground/60 mb-4">
                   {formatearFechaInteligente(createdAt)}
+                  <span
+                    className={`ml-2 px-2 py-1 rounded-full text-xs ${priorityColors[priority]}`}
+                  >
+                    {priority}
+                  </span>
                 </p>
-                <div className="flex gap-2">
+
+                <div className="flex gap-2 mt-4">
                   {!completed && (
                     <motion.div
                       whileHover={{ scale: 1.05 }}
@@ -155,7 +170,7 @@ const TaskItemComponent = ({
                         onClick={() => setEditando(true)}
                       >
                         <Pencil className="h-4 w-4 mr-2" />
-                        Editar
+                        Edit
                       </Button>
                     </motion.div>
                   )}
@@ -170,7 +185,7 @@ const TaskItemComponent = ({
                       onClick={() => onEliminar(id)}
                     >
                       <Trash2 className="h-4 w-4 mr-2" />
-                      Eliminar
+                      Delete
                     </Button>
                   </motion.div>
                 </div>
