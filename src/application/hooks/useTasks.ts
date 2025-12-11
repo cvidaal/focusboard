@@ -1,39 +1,37 @@
+import type { Priority, Task } from "@/domain/entities/Task";
+import type { TaskRepository } from "@/domain/interfaces/TaskRepository";
+import { LocalStorageTaskRepository } from "@/infrastructure/repositories/LocalStorageTaskRepository";
 import { useState, useEffect, useMemo } from "react";
-
-type priority = "high" | "medium" | "low";
-
-type Task = {
-  id: number;
-  title: string;
-  description: string;
-  completed: boolean;
-  createdAt: Date;
-  priority: priority;
-};
 
 export type FilterType = "todas" | "completadas" | "pendientes";
 
-export function useTask() {
-  // UseState con array de tareas
-  const [task, setTask] = useState<Task[]>(() => {
-    const savedTasks = localStorage.getItem("tareas");
-    if (savedTasks) {
-      const tareasParsed = JSON.parse(savedTasks);
-      // Convetir las fechas de string a Date
-      return tareasParsed.map((tarea: Task) => ({
-        ...tarea,
-        createdAt: new Date(tarea.createdAt),
-      }));
-    }
-    return [];
-  });
+export function useTask(repository?: TaskRepository) {
+
+  const taskRepository = repository || new LocalStorageTaskRepository();
+
+  // Estados de las tareas
+  const [task, setTask] = useState<Task[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   const [filter, setFilter] = useState<FilterType>("todas");
   const [searchQuery, setSearchQuery] = useState("");
 
+  // Cargar tareas al iniciar
   useEffect(() => {
-    localStorage.setItem("tareas", JSON.stringify(task));
-  }, [task]); // Solo se ejecuta cuando tareas cambia
+    const loadTasks = async () => {
+      setIsLoading(true);
+      const tasks = await taskRepository.getTasks();
+      setTask(tasks);
+      setIsLoading(false)
+    };
+    loadTasks();
+  }, [taskRepository])
+
+  useEffect(() => {
+    if(!isLoading){
+      taskRepository.saveTasks(task);
+    }
+  }, [task, isLoading, taskRepository])
 
   // Para filtrar las tareas según el filtro seleccionado
   const filterTask = useMemo(() => {
@@ -72,7 +70,7 @@ export function useTask() {
   const handleAgregarTarea = (
     titulo: string,
     descripcion: string,
-    priority: priority
+    priority: Priority
   ) => {
     const nuevaTarea: Task = {
       id: Date.now(),
@@ -117,6 +115,7 @@ export function useTask() {
     filter,
     counter,
     searchQuery,
+    isLoading,
     setSearchQuery,
     setFilter,
     handleAgregarTarea,

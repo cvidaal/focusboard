@@ -1,9 +1,9 @@
-import { TaskFilter } from "./components/TaskFilter";
-import { TaskForm } from "./components/TaskForm";
-import { TaskItem } from "./components/TaskItem";
-import { TaskSearch } from "./components/TaskSearch";
-import { Card, CardContent } from "./components/ui/card";
-import { useTask } from "./hooks/useTareas";
+import { TaskFilter } from "../components/TaskFilter";
+import { TaskForm } from "../components/TaskForm";
+import { TaskItem } from "../components/TaskItem";
+import { TaskSearch } from "../components/TaskSearch";
+import { Card, CardContent } from "../components/ui/card";
+import { useTask } from "../application/hooks/useTasks";
 
 export const App = () => {
   const {
